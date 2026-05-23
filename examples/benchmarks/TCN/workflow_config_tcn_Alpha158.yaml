@@ -67,7 +67,7 @@ task:
             metric: loss
             loss: mse
             optimizer: adam
-            n_jobs: 20
+            n_jobs: 8
             GPU: 0
     dataset:
         class: TSDatasetH

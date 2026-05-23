@@ -53,7 +53,7 @@ class ALSTM(Model):
         early_stop=20,
         loss="mse",
         optimizer="adam",
-        n_jobs=10,
+        n_jobs=8,
         GPU=0,
         seed=None,
         **kwargs,

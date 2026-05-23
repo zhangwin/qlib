@@ -61,7 +61,7 @@ task:
             batch_size: 800
             metric: loss
             loss: mse
-            n_jobs: 20
+            n_jobs: 8
             GPU: 0
             pt_model_uri: "qlib.contrib.model.pytorch_gru_ts.GRUModel"
             pt_model_kwargs: {

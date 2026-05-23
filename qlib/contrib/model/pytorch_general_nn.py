@@ -59,7 +59,7 @@ class GeneralPTNN(Model):
         loss="mse",
         weight_decay=0.0,
         optimizer="adam",
-        n_jobs=10,
+        n_jobs=8,
         GPU=0,
         seed=None,
         pt_model_uri="qlib.contrib.model.pytorch_gru_ts.GRUModel",
