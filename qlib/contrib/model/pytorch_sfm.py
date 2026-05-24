@@ -233,7 +233,12 @@ class SFM(Model):
         self.eval_steps = eval_steps
         self.optimizer = optimizer.lower()
         self.loss = loss
-        self.device = torch.device("cuda:%d" % (GPU) if torch.cuda.is_available() and GPU >= 0 else "cpu")
+        if GPU >= 0 and torch.cuda.is_available():
+            self.device = torch.device("cuda:%d" % (GPU))
+        elif GPU >= 0 and hasattr(torch.backends, "mps") and torch.backends.mps.is_available():
+            self.device = torch.device("mps")
+        else:
+            self.device = torch.device("cpu")
         self.seed = seed
 
         self.logger.info(
@@ -411,7 +416,8 @@ class SFM(Model):
         self.sfm_model.load_state_dict(best_param)
         torch.save(best_param, save_path)
         if self.device != "cpu":
-            torch.cuda.empty_cache()
+            if torch.cuda.is_available():
+                torch.cuda.empty_cache()
 
     def mse(self, pred, label):
         loss = (pred - label) ** 2

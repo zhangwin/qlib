@@ -80,7 +80,12 @@ class HIST(Model):
         self.model_path = model_path
         self.stock2concept = stock2concept
         self.stock_index = stock_index
-        self.device = torch.device("cuda:%d" % (GPU) if torch.cuda.is_available() and GPU >= 0 else "cpu")
+        if GPU >= 0 and torch.cuda.is_available():
+            self.device = torch.device("cuda:%d" % (GPU))
+        elif GPU >= 0 and hasattr(torch.backends, "mps") and torch.backends.mps.is_available():
+            self.device = torch.device("mps")
+        else:
+            self.device = torch.device("cpu")
         self.seed = seed
 
         self.logger.info(

@@ -69,7 +69,12 @@ class TabnetModel(Model):
         self.n_epochs = n_epochs
         self.logger = get_module_logger("TabNet")
         self.pretrain_n_epochs = pretrain_n_epochs
-        self.device = "cuda:%s" % (GPU) if torch.cuda.is_available() and GPU >= 0 else "cpu"
+        if GPU >= 0 and torch.cuda.is_available():
+            self.device = "cuda:%s" % (GPU)
+        elif GPU >= 0 and hasattr(torch.backends, "mps") and torch.backends.mps.is_available():
+            self.device = "mps"
+        else:
+            self.device = "cpu"
         self.loss = loss
         self.metric = metric
         self.early_stop = early_stop
@@ -212,7 +217,8 @@ class TabnetModel(Model):
         torch.save(best_param, save_path)
 
         if self.use_gpu:
-            torch.cuda.empty_cache()
+            if torch.cuda.is_available():
+                torch.cuda.empty_cache()
 
     def predict(self, dataset: DatasetH, segment: Union[Text, slice] = "test"):
         if not self.fitted:

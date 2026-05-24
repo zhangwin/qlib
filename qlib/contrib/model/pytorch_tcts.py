@@ -73,8 +73,13 @@ class TCTS(Model):
         self.batch_size = batch_size
         self.early_stop = early_stop
         self.loss = loss
-        self.device = torch.device("cuda:%d" % (GPU) if torch.cuda.is_available() else "cpu")
-        self.use_gpu = torch.cuda.is_available()
+        if GPU >= 0 and torch.cuda.is_available():
+            self.device = torch.device("cuda:%d" % (GPU))
+        elif GPU >= 0 and hasattr(torch.backends, "mps") and torch.backends.mps.is_available():
+            self.device = torch.device("mps")
+        else:
+            self.device = torch.device("cpu")
+        self.use_gpu = torch.cuda.is_available() or (hasattr(torch.backends, 'mps') and torch.backends.mps.is_available())
         self.seed = seed
         self.input_dim = input_dim
         self.output_dim = output_dim
@@ -344,7 +349,8 @@ class TCTS(Model):
         self.fitted = True
 
         if self.use_gpu:
-            torch.cuda.empty_cache()
+            if torch.cuda.is_available():
+                torch.cuda.empty_cache()
 
         return best_loss
 

@@ -11,7 +11,12 @@ from qlib.utils import init_instance_by_config
 
 from qlib.data.dataset import DatasetH
 
-device = "cuda" if torch.cuda.is_available() else "cpu"
+if torch.cuda.is_available():
+    device = "cuda"
+elif hasattr(torch.backends, 'mps') and torch.backends.mps.is_available():
+    device = "mps"
+else:
+    device = "cpu"
 
 
 def _to_tensor(x):

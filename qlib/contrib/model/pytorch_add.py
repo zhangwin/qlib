@@ -83,7 +83,12 @@ class ADD(Model):
         self.optimizer = optimizer.lower()
         self.base_model = base_model
         self.model_path = model_path
-        self.device = torch.device("cuda:%d" % (GPU) if torch.cuda.is_available() and GPU >= 0 else "cpu")
+        if GPU >= 0 and torch.cuda.is_available():
+            self.device = torch.device("cuda:%d" % (GPU))
+        elif GPU >= 0 and hasattr(torch.backends, "mps") and torch.backends.mps.is_available():
+            self.device = torch.device("mps")
+        else:
+            self.device = torch.device("cpu")
         self.seed = seed
 
         self.gamma = gamma
@@ -414,7 +419,8 @@ class ADD(Model):
         save_path = get_or_create_path(save_path)
         torch.save(best_param, save_path)
         if self.use_gpu:
-            torch.cuda.empty_cache()
+            if torch.cuda.is_available():
+                torch.cuda.empty_cache()
 
     def predict(self, dataset: DatasetH, segment: Union[Text, slice] = "test"):
         x_test = dataset.prepare(segment, col_set="feature", data_key=DataHandlerLP.DK_I)

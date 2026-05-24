@@ -31,10 +31,13 @@ from torch.utils.data import Dataset
 
 def seed_everything(seed: int) -> None:
     torch.manual_seed(seed)
-    torch.cuda.manual_seed_all(seed)
+    if torch.cuda.is_available():
+        torch.cuda.manual_seed_all(seed)
+        torch.backends.cudnn.deterministic = True
+    elif hasattr(torch.backends, 'mps') and torch.backends.mps.is_available():
+        torch.mps.manual_seed(seed)
     np.random.seed(seed)
     random.seed(seed)
-    torch.backends.cudnn.deterministic = True
 
 
 def _read_orders(order_dir: Path) -> pd.DataFrame:
@@ -235,8 +238,10 @@ def main(config: dict, run_training: bool, run_backtest: bool) -> None:
     policy: BasePolicy = init_instance_by_config(config["policy"])
 
     use_cuda = config["runtime"].get("use_cuda", False)
-    if use_cuda:
+    if use_cuda and torch.cuda.is_available():
         policy.cuda()
+    elif use_cuda and hasattr(torch.backends, 'mps') and torch.backends.mps.is_available():
+        policy = policy.to("mps")
 
     train_and_test(
         env_config=config["env"],

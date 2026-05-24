@@ -56,7 +56,12 @@ class LocalformerModel(Model):
         self.optimizer = optimizer.lower()
         self.loss = loss
         self.n_jobs = n_jobs
-        self.device = torch.device("cuda:%d" % GPU if torch.cuda.is_available() and GPU >= 0 else "cpu")
+        if GPU >= 0 and torch.cuda.is_available():
+            self.device = torch.device("cuda:%d" % (GPU))
+        elif GPU >= 0 and hasattr(torch.backends, "mps") and torch.backends.mps.is_available():
+            self.device = torch.device("mps")
+        else:
+            self.device = torch.device("cpu")
         self.seed = seed
         self.logger = get_module_logger("TransformerModel")
         self.logger.info(
@@ -198,7 +203,8 @@ class LocalformerModel(Model):
         torch.save(best_param, save_path)
 
         if self.use_gpu:
-            torch.cuda.empty_cache()
+            if torch.cuda.is_available():
+                torch.cuda.empty_cache()
 
     def predict(self, dataset):
         if not self.fitted:
