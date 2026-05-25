@@ -66,10 +66,10 @@ class TradeCalendarManager:
         self.start_time = pd.Timestamp(start_time) if start_time else None
         self.end_time = pd.Timestamp(end_time) if end_time else None
 
-        _calendar = Cal.calendar(freq=freq, future=True)
+        _calendar = Cal.calendar(freq=freq, future=False)
         assert isinstance(_calendar, np.ndarray)
         self._calendar = _calendar
-        _, _, _start_index, _end_index = Cal.locate_index(start_time, end_time, freq=freq, future=True)
+        _, _, _start_index, _end_index = Cal.locate_index(start_time, end_time, freq=freq, future=False)
         self.start_index = _start_index
         self.end_index = _end_index
         self.trade_len = _end_index - _start_index + 1
@@ -128,6 +128,8 @@ class TradeCalendarManager:
         if trade_step is None:
             trade_step = self.get_trade_step()
         calendar_index = self.start_index + trade_step - shift
+        if calendar_index + 1 >= len(self._calendar):
+            return self._calendar[calendar_index], epsilon_change(self._calendar[-1])
         return self._calendar[calendar_index], epsilon_change(self._calendar[calendar_index + 1])
 
     def get_data_cal_range(self, rtype: str = "full") -> Tuple[int, int]:
